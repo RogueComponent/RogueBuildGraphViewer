@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Test / tool output
+.pytest_cache/
+.coverage
+htmlcov/
+*.sarif
+report.html
+out/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini

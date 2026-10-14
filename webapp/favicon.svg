@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rogue BuildGraph Viewer">
+  <!-- The product mark on the brand's dark ground: two boxes wired together,
+       and the third box, the one that only has to wait its turn, in the
+       product colour on its dashed wire. -->
+  <rect width="64" height="64" rx="14" fill="#0E0D11"/>
+  <g transform="translate(6.4 6.4) scale(0.8)">
+    <rect x="6" y="12" width="20" height="13" rx="3" fill="#E9E6F0"/>
+    <rect x="38" y="12" width="20" height="13" rx="3" fill="#E9E6F0"/>
+    <path d="M26,18.5 H38" fill="none" stroke="#E9E6F0" stroke-width="3"/>
+    <path d="M16,25 V45.5 H38" fill="none" stroke="#5B9BF0" stroke-width="3" stroke-dasharray="4 4"/>
+    <rect x="38" y="39" width="20" height="13" rx="3" fill="#5B9BF0"/>
+  </g>
+</svg>

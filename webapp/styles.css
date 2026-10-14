@@ -1,0 +1,899 @@
+/* bgview web app styles.
+ *
+ * One stylesheet for shell and report both, because unlike the Python
+ * version there is no sandboxed iframe between them any more -- the report
+ * is rendered into this document's DOM. That is safe here for a reason worth
+ * stating: nothing off the analysed script ever becomes MARKUP. render.js
+ * uses textContent and setAttribute exclusively, so a node named
+ * `<img onerror=...>` is text, not an element.
+ *
+ * Tokens first, components after. The palette is Rogue Component's, the
+ * brand this tool ships under, so the viewer and roguecomponent.com read
+ * as one family; the --html report (bgview/html.py) keeps its own.
+ * Three theme states, not two: the bare :root is the complete light palette,
+ * the media query is guarded so an explicit light choice beats a dark OS, and
+ * the stamped [data-theme] rule wins the other way. No colour is defined ONLY
+ * inside a media or [data-theme] block -- that is the bug that renders one
+ * theme's text on the other theme's ground.
+ *
+ * Severity colours are scoped to the element that wears them (.legend-dot,
+ * .finding-sev, .gutter-dot, .node-badge). A bare `.sev-warn { background }`
+ * rule used to match the finding ROW too, because the row carries the same
+ * class, and every row came out as a solid block of colour.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Rogue Component tokens. The names are the ones this sheet has always
+     used, so the component rules below did not have to change; the values
+     are the brand site's (roguecomponent.com, site.css) and the product's
+     own colour from its catalogue entry. Blue is this product's colour:
+     it marks the selection, the lens, the focused control, and the dashed
+     "order only" wire, the same wire the product mark picks out. Amber is
+     the warning colour and red the error colour on every Rogue Component
+     page, so they are here too.
+     The bare :root is the complete light palette, the media query is
+     guarded so an explicit light choice beats a dark OS, and the stamped
+     [data-theme] rule wins the other way. No colour is defined ONLY inside
+     a media or [data-theme] block. */
+
+  /* surfaces & text */
+  --bg: #EDEEF2; --surface: #FFFFFF; --surface-2: #F5F5F9; --surface-3: #ECEBF1;
+  --fg: #14131A; --muted: #565062;
+  --border: #D9D8E2; --border-strong: #BFBCCD;
+
+  /* accent: outlines and highlights use --accent; FILLED controls with text
+     on them use --accent-fill with --accent-fill-ink, which is the ink the
+     brand puts on this blue in each theme. */
+  --accent: #1F5FBF; --accent-soft: #DCE8FA;
+  --accent-fill: #1F5FBF; --accent-fill-ink: #FFFFFF;
+
+  /* severity: red and amber are the brand's error and warning colours.
+     Info is neutral, because blue now means "yours" (selection, lens). */
+  --error: #C01818; --error-bg: #F9DEDE;
+  --warn: #9C5E09; --warn-bg: #FFF8EC;
+  --info: #565062; --info-bg: #E9E8EF;
+  --badge-ink: #FFFFFF;
+
+  /* graph: file-carrying wires are neutral, the order-only wire is the
+     accent, as on the product mark. */
+  --node-bg: #FFFFFF; --node-border: #BFBCCD;
+  --lane-bg: #F3F3F7; --lane-header-bg: #E9E8EF;
+  --dataflow: #7A7489; --order: #1F5FBF;
+  --grid-dot: rgba(20, 19, 26, .10);
+
+  /* tag direction, inspector chips: what a node hands out vs takes in */
+  --produces: #2C7A44; --produces-bg: #E6F5EA;
+  --creates: #17627F; --creates-bg: #DBEEF5;
+  --consumes: #6B3FD4; --consumes-bg: #E6DFFA;
+
+  /* shape, elevation, type */
+  --shadow: 0 18px 44px -28px rgba(0, 0, 0, .55);
+  --r-sm: 3px; --r-md: 3px; --r-lg: 5px;
+  --control-h: 30px;
+  --font-display: "Bahnschrift", "DIN Alternate", "Avenir Next Condensed", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-data: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, "SF Mono", Menlo, monospace;
+  --fs-xs: 11.5px; --fs-sm: 12.5px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E0D11; --surface: #17151C; --surface-2: #1F1C26; --surface-3: #26232E;
+    --fg: #E9E6F0; --muted: #968FA6;
+    --border: #2A2733; --border-strong: #3B3747;
+    --accent: #5B9BF0; --accent-soft: #15253B;
+    --accent-fill: #5B9BF0; --accent-fill-ink: #0E0D11;
+    --error: #E5484D; --error-bg: #2C1012;
+    --warn: #FFB34D; --warn-bg: #3A2A12;
+    --info: #968FA6; --info-bg: #221F2A;
+    --badge-ink: #0E0D11;
+    --node-bg: #17151C; --node-border: #3B3747;
+    --lane-bg: #131118; --lane-header-bg: #1F1C26;
+    --dataflow: #968FA6; --order: #5B9BF0;
+    --grid-dot: rgba(233, 230, 240, .07);
+    --produces: #4DB866; --produces-bg: #163222;
+    --creates: #66CCFF; --creates-bg: #12303D;
+    --consumes: #A78CF4; --consumes-bg: #231C33;
+    --shadow: 0 18px 44px -28px rgba(0, 0, 0, .9);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E0D11; --surface: #17151C; --surface-2: #1F1C26; --surface-3: #26232E;
+  --fg: #E9E6F0; --muted: #968FA6;
+  --border: #2A2733; --border-strong: #3B3747;
+  --accent: #5B9BF0; --accent-soft: #15253B;
+  --accent-fill: #5B9BF0; --accent-fill-ink: #0E0D11;
+  --error: #E5484D; --error-bg: #2C1012;
+  --warn: #FFB34D; --warn-bg: #3A2A12;
+  --info: #968FA6; --info-bg: #221F2A;
+  --badge-ink: #0E0D11;
+  --node-bg: #17151C; --node-border: #3B3747;
+  --lane-bg: #131118; --lane-header-bg: #1F1C26;
+  --dataflow: #968FA6; --order: #5B9BF0;
+  --grid-dot: rgba(233, 230, 240, .07);
+  --produces: #4DB866; --produces-bg: #163222;
+  --creates: #66CCFF; --creates-bg: #12303D;
+  --consumes: #A78CF4; --consumes-bg: #231C33;
+  --shadow: 0 18px 44px -28px rgba(0, 0, 0, .9);
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+/* ---------------------------------------------------------------- base --- */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: var(--fs-md)/1.5 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+code {
+  font-family: var(--font-data); font-size: .92em;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 1px 5px;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Off-screen but announced -- for the share panel's status updates, which
+   are already spoken for visually (button label, panel text) and only need
+   a screen-reader channel, not a second visible copy. Also hides the file
+   inputs while keeping them focusable (a display:none input is not). */
+.sr-only, .visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ------------------------------------------------------------- controls --- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--control-h); padding: 0 14px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); color: var(--fg);
+  font: inherit; font-family: var(--font-display); font-size: 12.5px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; line-height: 1.2;
+  cursor: pointer; transition: border-color 120ms, background 120ms, color 120ms;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary {
+  background: var(--accent-fill); border-color: var(--accent-fill);
+  color: var(--accent-fill-ink); font-weight: 600;
+}
+.btn.primary:hover { filter: brightness(1.07); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--fg); border-color: var(--border-strong); }
+.btn:disabled { opacity: .6; cursor: progress; }
+
+/* ---------------------------------------------------------- shell header --- */
+#shell-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  background: var(--bg); flex: 0 0 auto;
+}
+/* The lockup: the product mark, then the name set the way the brand sets
+   every product name (display face, capitals, tracked). The mark is drawn
+   in the ink with one loose piece in the product colour. */
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark { width: 34px; height: 34px; flex: 0 0 auto; color: var(--fg); }
+.brand-mark .mark-loose { fill: var(--accent); }
+.brand-mark .mark-loose-wire { stroke: var(--accent); }
+#shell-header h1 {
+  margin: 0; font-family: var(--font-display); font-size: 15.5px;
+  font-weight: 600; letter-spacing: .055em; text-transform: uppercase; line-height: 1.2;
+}
+.tagline { margin: 3px 0 0; color: var(--muted); font-size: var(--fs-sm); max-width: 72ch; }
+.shell-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+
+/* With a report up, the shell steps back: the file name in the report header
+   is the title now, and the tagline is the one line nobody rereads. */
+body[data-view="report"] #shell-header { padding: 6px 16px; }
+body[data-view="report"] .brand-mark { width: 24px; height: 24px; }
+body[data-view="report"] #shell-header h1 { font-size: 13.5px; }
+body[data-view="report"] .tagline { display: none; }
+
+/* --------------------------------------------------------------- picker --- */
+#picker {
+  flex: 1 1 auto; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 40px 16px;
+}
+.card {
+  width: min(720px, 100%); background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-lg); padding: 28px;
+  box-shadow: var(--shadow); transition: border-color 120ms, box-shadow 120ms;
+}
+.card.dragover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow);
+}
+.card h2 {
+  margin: 0 0 8px; font-family: var(--font-display);
+  font-size: 27px; font-weight: 600; line-height: 1.1; letter-spacing: -.006em; text-wrap: balance;
+}
+.lead { margin: 0 0 18px; color: var(--muted); }
+
+/* The one way in: a drop zone. Dashed edge is the drop affordance; dragover
+   and focus both light it up, because a drag with no feedback is a drag
+   nobody trusts. Clickable and focusable too (keyboard fallback). */
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+  margin-bottom: 14px; padding: 28px 24px 22px;
+  border: 2px dashed var(--border-strong); border-radius: var(--r-lg);
+  background: var(--bg); color: var(--fg); cursor: pointer;
+  transition: border-color 120ms, background 120ms, transform 120ms;
+}
+.dropzone:hover { border-color: var(--accent); }
+.dropzone.dragover {
+  border-color: var(--accent); border-style: solid; background: var(--accent-soft);
+  transform: scale(1.01);
+}
+.dropzone:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.dropzone-icon { width: 44px; height: 44px; color: var(--accent); margin-bottom: 4px; }
+.dropzone-title { margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: .01em; }
+.dropzone-title code { font-size: .85em; vertical-align: middle; }
+.dropzone-sub { margin: 0; max-width: 56ch; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.dropzone-sub code { background: var(--surface); }
+.dropzone-kbd { margin: 6px 0 0; font-size: var(--fs-xs); color: var(--muted); opacity: .85; }
+
+.status {
+  margin: 0; display: flex; align-items: center; gap: 9px; min-height: var(--control-h);
+  padding: 6px 12px; border-radius: var(--r-md);
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.status::before {
+  content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--produces);
+}
+.status.busy::before { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+
+.choices { margin-top: 12px; }
+.btn.choice {
+  display: flex; width: 100%; justify-content: flex-start; margin-top: 6px;
+  font-family: var(--font-data); font-size: var(--fs-sm); text-align: left;
+  text-transform: none; letter-spacing: 0; font-weight: 500;
+}
+.hint { margin: 0 0 8px; color: var(--muted); font-size: var(--fs-sm); }
+.error {
+  margin: 12px 0 0; padding: 9px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--error); border-left-width: 3px; background: var(--error-bg);
+  color: var(--fg); font-family: var(--font-data); font-size: 12px;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.privacy {
+  width: min(720px, 100%); display: flex; gap: 12px; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface); color: var(--muted); font-size: var(--fs-sm); line-height: 1.5;
+}
+.privacy p { margin: 0; }
+.privacy strong { color: var(--fg); }
+.meta { width: min(720px, 100%); color: var(--muted); font-size: var(--fs-xs); text-align: center; }
+.meta p { margin: 0; }
+.meta .credit { margin-top: 6px; }
+.meta a { color: inherit; text-underline-offset: 2px; }
+.meta a:hover { color: var(--fg); }
+
+/* --------------------------------------------------------------- report --- */
+.report { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; transition: box-shadow 120ms; }
+/* A drop onto the report adds files to it; the whole report is the target. */
+.report.dragover { box-shadow: inset 0 0 0 3px var(--accent); }
+
+/* title | colour key | controls. The controls group pushes right and wraps
+   as one unit, so a narrow window stacks it under the title instead of
+   scattering lens, toggles and Share across two half-filled rows. */
+.report-header {
+  display: flex; align-items: center; gap: 18px;
+  padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface);
+  flex: 0 0 auto; flex-wrap: wrap;
+}
+.report-title { display: flex; flex-direction: column; min-width: 0; }
+.report-title h2 {
+  margin: 0; font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40ch;
+}
+.title-meta { color: var(--muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.report-tools { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* T64: share control. Sits in the header's own actions slot -- render.js
+   only supplies the slot, app.js (which owns the file set) fills it. The
+   panel is a popover under the button rather than an in-flow block, so
+   opening it does not shove the whole report down. */
+.report-actions { position: relative; display: flex; align-items: center; gap: 10px; }
+.share-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 30;
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 14px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--shadow);
+  width: min(560px, calc(100vw - 32px));
+}
+/* This sentence IS the feature's safety story (V54) -- a warning block in
+   the warning colour, never grey fine print that reads as boilerplate. */
+.share-warning {
+  margin: 0; padding: 8px 10px 8px 12px; border-radius: var(--r-sm);
+  background: var(--warn-bg); border-left: 3px solid var(--warn);
+  color: var(--fg); font-size: var(--fs-sm); line-height: 1.45;
+}
+.share-field { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.share-label { font-family: var(--font-data); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.share-input {
+  flex: 1 1 220px; min-width: 160px; height: var(--control-h); padding: 0 10px;
+  border-radius: var(--r-md); border: 1px solid var(--border-strong);
+  background: var(--bg); color: var(--fg);
+  font: inherit; font-size: 12px; font-family: var(--font-data);
+}
+
+.legend {
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  font-size: var(--fs-xs); color: var(--muted);
+  padding-left: 18px; border-left: 1px solid var(--border);
+}
+.legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend-dot.sev-info { background: var(--info); }
+.legend-dot.sev-warn { background: var(--warn); }
+.legend-dot.sev-error { background: var(--error); }
+.legend-wire { width: 22px; height: 0; border-top: 2px solid var(--dataflow); display: inline-block; }
+.legend-wire.order { border-top-style: dashed; border-top-color: var(--order); }
+/* The legend swaps with the tab: the graph keys are meaningless on Source,
+   and the gutter key is wanted exactly where it used to disappear. */
+.legend-group { display: inline-flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.legend-group[hidden] { display: none; }
+
+/* Notices between header and body: what happened to the script's includes.
+   A rail in the severity colour, the message, and (for a missing include)
+   the fix as a button. In-flow on purpose -- it is part of the verdict, not
+   a toast to dismiss. */
+.report-notices { display: flex; flex-direction: column; flex: 0 0 auto; }
+.notice {
+  display: flex; align-items: center; gap: 14px; padding: 8px 16px 8px 13px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  font-size: var(--fs-sm); box-shadow: inset 3px 0 0 var(--muted);
+}
+.notice-warn { background: var(--warn-bg); box-shadow: inset 3px 0 0 var(--warn); }
+.notice-info { background: var(--info-bg); box-shadow: inset 3px 0 0 var(--info); }
+.notice-ok { background: var(--produces-bg); box-shadow: inset 3px 0 0 var(--produces); }
+.notice-body { flex: 1 1 auto; min-width: 0; }
+.notice-text { margin: 0; flex: 1 1 auto; line-height: 1.45; overflow-wrap: anywhere; }
+.notice-status { margin: 4px 0 0; font-size: var(--fs-xs); color: var(--muted); }
+.notice code { background: var(--surface); }
+.notice-actions { display: flex; gap: 8px; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; }
+/* The fold control. Expanded: a quiet "Hide notices" at the right under the
+   last notice. Collapsed: the only thing left is "Show N notices", so the
+   count of what is folded away stays on screen. */
+.notices-bar {
+  display: flex; justify-content: flex-end; padding: 2px 12px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.notices-toggle {
+  border: 0; background: transparent; color: var(--muted);
+  font: inherit; font-size: var(--fs-xs); font-weight: 500; padding: 3px 8px;
+  border-radius: var(--r-sm); cursor: pointer;
+}
+.notices-toggle:hover { color: var(--fg); background: var(--surface-2); }
+.report-notices.collapsed .notice { display: none; }
+.report-notices.collapsed .notices-bar { justify-content: flex-start; }
+.report-notices.collapsed .notices-toggle { color: var(--fg); }
+/* One-click aliases for same-named files the evidence bar refused. */
+.notice-suggest { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.notice-suggest-lead { margin: 0; font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
+.suggest-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: var(--fs-xs); }
+.suggest-btn { min-height: 24px; padding: 0 8px; font-size: var(--fs-xs); font-family: var(--font-data); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.suggest-all { align-self: flex-start; min-height: 26px; padding: 0 10px; font-size: var(--fs-xs); }
+
+.report-body { flex: 1 1 auto; display: flex; min-height: 0; }
+
+/* ------------------------------------------------------- findings panel --- */
+.findings-panel {
+  position: relative; width: 340px; flex: 0 0 auto;
+  border-right: 1px solid var(--border); background: var(--surface);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.filter-row { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px;
+  border-radius: 999px; border: 1px solid var(--border-strong);
+  background: transparent; color: var(--muted);
+  font: inherit; font-family: var(--font-data); font-size: 10px; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+  transition: border-color 120ms, background 120ms, color 120ms;
+}
+.chip:hover { border-color: var(--accent); color: var(--fg); }
+.chip.on { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-fill-ink); }
+.chip-count {
+  font-variant-numeric: tabular-nums; padding: 0 5px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted); font-size: 10.5px; line-height: 16px;
+}
+.chip.on .chip-count { background: color-mix(in srgb, var(--accent-fill-ink) 18%, transparent); color: inherit; }
+
+.findings-list { overflow-y: auto; flex: 1 1 auto; }
+.finding {
+  position: relative; padding: 8px 12px 8px 14px;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 120ms;
+}
+/* Severity lives in a rail on the left and in the coloured word; the row's
+   ground stays the panel's, so the message is always readable. */
+.finding::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: transparent;
+}
+.finding.sev-info::before { background: var(--info); }
+.finding.sev-warn::before { background: var(--warn); }
+.finding.sev-error::before { background: var(--error); }
+.finding:hover { background: var(--surface-2); }
+.finding.current { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.finding:focus-visible { outline-offset: -2px; }
+/* Dimmed, never hidden: the severity filter already hides rows, and a second
+   remover would make it impossible to tell which one acted. Dimmed rows stay
+   clickable. */
+.finding.dimmed { opacity: .38; }
+.finding-head { display: flex; gap: 8px; align-items: baseline; font-size: var(--fs-xs); }
+.finding-sev { font-family: var(--font-data); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.finding-sev.sev-info { color: var(--info); }
+.finding-sev.sev-warn { color: var(--warn); }
+.finding-sev.sev-error { color: var(--error); }
+.finding-det { color: var(--muted); font-family: var(--font-data); }
+.finding-loc { color: var(--muted); margin-left: auto; font-family: var(--font-data); white-space: nowrap; }
+/* pre-wrap, so a message about "consecutive spaces" SHOWS the two spaces
+   instead of HTML collapsing them into one and contradicting itself. */
+.finding-msg { margin-top: 3px; font-size: var(--fs-sm); line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+.empty { padding: 20px 16px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; }
+
+/* resizers -- floor 180px, ceiling min(720, 50vw). A visible affordance,
+   because an invisible drag zone is one nobody finds. */
+.resizer {
+  position: absolute; top: 0; bottom: 0; width: 7px; cursor: col-resize;
+  background: transparent; z-index: 3;
+}
+.resizer-left { right: -3px; }
+.resizer-right { left: -3px; }
+.resizer::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 1px;
+  background: transparent; transition: background 120ms;
+}
+.resizer:hover::after, .resizer:focus-visible::after, body.resizing .resizer::after { background: var(--accent); }
+.resizer:focus-visible { outline: none; }
+body.resizing { cursor: col-resize; user-select: none; }
+
+/* ------------------------------------------------------------ tag lens --- */
+/* (T31) Highlight accents and hides nothing; Filter dims and prunes the
+   findings list, and always SAYS how many it is holding back. The dashed
+   edge is the drop affordance: inspector chips drag into these. */
+.lens-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lens {
+  position: relative; display: flex; align-items: center; gap: 6px;
+  min-height: var(--control-h); padding: 2px 6px 2px 10px;
+  border: 1px dashed var(--border-strong); border-radius: var(--r-md); background: var(--bg);
+  transition: border-color 120ms, background 120ms;
+}
+.lens.drop { border-color: var(--accent); border-style: solid; background: var(--accent-soft); }
+.lens-label {
+  color: var(--muted); font-family: var(--font-data); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em;
+}
+.lens-input {
+  width: 96px; height: 22px; padding: 0 6px; border-radius: var(--r-sm);
+  border: 1px solid transparent; background: transparent; color: var(--fg);
+  font: inherit; font-size: var(--fs-xs); font-family: var(--font-data);
+}
+.lens-input::placeholder { color: var(--muted); opacity: .8; }
+.lens-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; background: var(--surface); }
+/* suggestion list -- a combobox popup over the tags this graph HAS */
+.lens-suggest {
+  position: absolute; top: 100%; left: 0; z-index: 20; margin: 4px 0 0; padding: 4px;
+  min-width: 220px; max-height: 240px; overflow-y: auto; list-style: none;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.lens-option {
+  padding: 5px 8px; border-radius: var(--r-sm); cursor: pointer; white-space: nowrap;
+  font-family: var(--font-data); font-size: 12px; color: var(--fg);
+}
+.lens-option.active { background: var(--accent-fill); color: var(--accent-fill-ink); }
+.lens-option mark { background: none; color: var(--accent); font-weight: 700; }
+.lens-option.active mark { color: inherit; text-decoration: underline; }
+/* Labelled, not disguised: a typo correction has no per-character alignment
+   to show, so it says what it is instead of pretending to one. */
+.lens-option-why {
+  margin-left: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); font-family: var(--font-ui);
+}
+.lens-option.active .lens-option-why { color: inherit; opacity: .8; }
+
+.lens-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip-in-lens {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 4px 1px 8px;
+  border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent);
+  font-size: 11px; font-family: var(--font-data); color: var(--fg);
+}
+.chip-x {
+  border: 0; background: none; color: var(--muted); cursor: pointer;
+  font: inherit; font-size: 10px; padding: 0 3px; line-height: 1; border-radius: 999px;
+}
+.chip-x:hover { color: var(--error); }
+.lens-note { color: var(--warn); font-size: var(--fs-xs); font-weight: 500; }
+
+/* Highlight ACCENTS. Filter DIMS. Neither ever removes a node from the
+   canvas -- a graph with holes in it is not a graph of anything. */
+.node.lens-dim { opacity: .22; }
+.edge.lens-dim { opacity: .08; }
+
+/* ------------------------------------------------------- panel toggles --- */
+/* One segmented control: the two panels are a pair, and a pair of pills
+   reads as two unrelated buttons. */
+.panel-toggles {
+  display: flex; border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  overflow: hidden; background: var(--surface);
+}
+.toggle {
+  min-height: calc(var(--control-h) - 2px); padding: 0 12px;
+  border: 0; border-right: 1px solid var(--border-strong);
+  background: transparent; color: var(--muted);
+  font: inherit; font-family: var(--font-display); font-size: 12.5px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.toggle:last-child { border-right: 0; }
+.toggle:hover { color: var(--fg); }
+.toggle.on { background: var(--accent-soft); color: var(--fg); }
+.toggle:focus-visible { outline-offset: -2px; }
+.toggle.solo { border: 1px solid var(--border-strong); border-radius: var(--r-md); min-height: var(--control-h); }
+
+/* ---------------------------------------------------------- options --- */
+/* (T72) The option-set, as --set on the command line. A popover like
+   Share, so opening it does not reflow the report. */
+.report-options { position: relative; }
+.options-btn .chip-count { background: var(--accent-fill); color: var(--accent-fill-ink); }
+.options-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 30;
+  display: flex; flex-direction: column; gap: 6px; padding: 12px 14px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--shadow);
+  width: min(560px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
+}
+.options-lead { margin: 0 0 4px; font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
+.option-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 3px 12px; align-items: center;
+  padding: 8px 0; border-top: 1px solid var(--border);
+}
+.option-head { display: flex; flex-direction: column; min-width: 0; }
+.option-name { font-family: var(--font-data); font-size: var(--fs-sm); font-weight: 600; overflow-wrap: anywhere; }
+.option-desc { font-size: var(--fs-xs); color: var(--muted); line-height: 1.4; }
+.option-input {
+  height: var(--control-h); min-width: 0; padding: 0 8px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--bg); color: var(--fg);
+  font: inherit; font-size: var(--fs-sm); font-family: var(--font-data);
+}
+.option-default { grid-column: 1 / -1; font-size: 10.5px; color: var(--muted); }
+.option-row.overridden .option-name { color: var(--accent); }
+.option-row.overridden .option-input { border-color: var(--accent); }
+.options-actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--border); }
+
+/* ------------------------------------------------------- guard lens --- */
+/* (T73) Dims, never removes (V60). The "show inactive" toggle on .report
+   restores every one of these at once. */
+.title-activity { color: var(--muted); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+.activity-note {
+  padding: 6px 12px; border-bottom: 1px solid var(--border);
+  font-size: var(--fs-xs); color: var(--muted); background: var(--surface-2);
+}
+.node.inactive { opacity: .32; }
+.node.unknown .node-box { stroke-dasharray: 4 3; }
+.lane.inactive .lane-bg, .lane.inactive .lane-toggle { opacity: .5; }
+.lane.inactive .lane-label { fill: var(--muted); }
+.edge.inactive:not(.incident) { opacity: .08; }
+.finding.inactive { opacity: .38; }
+.report.show-inactive .node.inactive { opacity: 1; }
+.report.show-inactive .edge.inactive:not(.incident) { opacity: .6; }
+.report.show-inactive .finding.inactive { opacity: 1; }
+.report.show-inactive .lane.inactive .lane-bg, .report.show-inactive .lane.inactive .lane-toggle { opacity: 1; }
+.activity-state {
+  display: inline-block; margin: 0 0 6px; padding: 3px 8px; border-radius: var(--r-sm);
+  font-size: var(--fs-xs); font-weight: 600;
+}
+.state-inactive { background: var(--surface-2); color: var(--muted); }
+.state-unknown { background: var(--info-bg); color: var(--info); }
+.cond-now {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+}
+.now-active { background: var(--produces-bg); color: var(--produces); }
+.now-inactive { background: var(--surface-2); color: var(--muted); }
+.now-unknown { background: var(--info-bg); color: var(--info); }
+.cond-owner { flex: 1 1 100%; font-size: 10.5px; color: var(--muted); }
+.cond.inherited .cond-text { color: var(--muted); }
+
+/* ------------------------------------------------------------ inspector --- */
+/* Answers "what IS this node", which the graph can only gesture at: a box
+   shows that an edge exists, not what rode along it. */
+.details-panel {
+  position: relative; width: 320px; flex: 0 0 auto;
+  border-left: 1px solid var(--border); background: var(--surface);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.details-body { overflow-y: auto; padding: 14px 16px; }
+.details-title {
+  margin: 0 0 10px; font-size: var(--fs-md); font-weight: 600;
+  font-family: var(--font-data); overflow-wrap: anywhere;
+}
+.details-meta {
+  display: grid; grid-template-columns: auto 1fr; gap: 4px 12px;
+  margin: 0 0 16px; font-size: var(--fs-sm);
+}
+.details-meta dt { color: var(--muted); }
+.details-meta dd { margin: 0; font-family: var(--font-data); overflow-wrap: anywhere; }
+
+.details-sec { margin-bottom: 14px; }
+.details-sec h4 {
+  margin: 0 0 6px; font-family: var(--font-data); font-size: 10px; text-transform: uppercase;
+  letter-spacing: .14em; color: var(--muted); font-weight: 600;
+}
+.details-sec .none { color: var(--muted); font-size: var(--fs-sm); font-style: italic; opacity: .85; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.tagchip {
+  padding: 2px 8px; border-radius: var(--r-sm); font-size: var(--fs-xs);
+  font-family: var(--font-data); overflow-wrap: anywhere;
+  border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--fg);
+}
+/* Colour follows DIRECTION, matching the graph's wires: what this node hands
+   out vs what it takes in. Requires/After stay neutral -- they name nodes,
+   not tags, and their tags already appear under Consumes. */
+.tagchip.produces { border-color: var(--produces); background: var(--produces-bg); color: var(--produces); }
+.tagchip.creates  { border-color: var(--creates);  background: var(--creates-bg);  color: var(--creates); }
+.tagchip.consumes { border-color: var(--consumes); background: var(--consumes-bg); color: var(--consumes); }
+
+.linky { cursor: pointer; }
+.linky:hover { border-color: var(--accent); color: var(--accent); }
+.details-meta dd.linky { text-decoration: underline dotted; text-underline-offset: 2px; }
+.details-meta dd.linky:hover { color: var(--accent); }
+
+/* conditions -- §G's third invisible semantic, finally on screen */
+.cond {
+  display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap;
+  padding: 5px 0; border-top: 1px solid var(--border); font-size: var(--fs-xs);
+}
+.cond-text { flex: 1 1 100%; font-family: var(--font-data); color: var(--fg); overflow-wrap: anywhere; }
+.cond-verdict {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted);
+}
+.cond.verdict-unsat .cond-verdict { background: var(--warn-bg); color: var(--warn); }
+.cond.verdict-taut .cond-verdict { background: var(--info-bg); color: var(--info); }
+
+.details-finding {
+  display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap;
+  padding: 6px 8px 6px 11px; margin: 0 -8px; border-radius: var(--r-sm);
+  border-top: 1px solid var(--border); font-size: var(--fs-xs); cursor: pointer;
+  box-shadow: inset 3px 0 0 transparent;
+}
+.details-finding.sev-info { box-shadow: inset 3px 0 0 var(--info); }
+.details-finding.sev-warn { box-shadow: inset 3px 0 0 var(--warn); }
+.details-finding.sev-error { box-shadow: inset 3px 0 0 var(--error); }
+.details-finding:hover { background: var(--surface-2); }
+.details-finding-msg { flex: 1 1 100%; color: var(--fg); white-space: pre-wrap; }
+
+/* ------------------------------------------------------------ main pane --- */
+.report-main { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.tabstrip {
+  display: flex; gap: 4px; padding: 6px 12px 0;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.tab {
+  position: relative; padding: 7px 14px 9px; border: 0; background: transparent;
+  color: var(--muted); font: inherit; font-family: var(--font-data); font-size: 10.5px; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  border-radius: var(--r-sm) var(--r-sm) 0 0; transition: color 120ms, background 120ms;
+}
+.tab:hover { color: var(--fg); background: var(--surface-2); }
+.tab.on { color: var(--fg); }
+.tab.on::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--accent);
+}
+
+/* The canvas. A faint dot grid says "this pans and zooms" the way every
+   node editor does; the toolbar makes the zoom stops visible and the hint
+   names the gestures, which are Unreal's and not the web's. */
+.graph-area {
+  flex: 1 1 auto; min-height: 0; overflow: hidden; position: relative;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+.graph-area.panning { cursor: grabbing; }
+.graph { display: block; }
+
+.graph-toolbar {
+  position: absolute; top: 10px; right: 12px; z-index: 5;
+  display: flex; align-items: center; gap: 2px; padding: 3px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  background: var(--surface); box-shadow: var(--shadow);
+}
+.zoom-btn {
+  min-width: 28px; height: 26px; padding: 0 8px; border: 0; border-radius: var(--r-sm);
+  background: transparent; color: var(--fg); font: inherit; font-size: 13px; cursor: pointer;
+}
+.zoom-btn:hover { background: var(--surface-2); }
+.zoom-level {
+  min-width: 40px; text-align: center; font-family: var(--font-data);
+  font-size: var(--fs-xs); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.graph-hint {
+  position: absolute; left: 12px; bottom: 10px; z-index: 5;
+  font-size: var(--fs-xs); color: var(--muted); pointer-events: none;
+}
+
+/* swimlanes */
+.lane-bg { fill: var(--lane-bg); stroke: var(--border); stroke-width: 1; }
+.lane-label { fill: var(--fg); font: 600 12px var(--font-ui); }
+.lane-meta { fill: var(--muted); font: 10.5px var(--font-ui); }
+/* lane collapse -- the whole header band is the target, not a tiny caret */
+.lane-toggle { fill: var(--lane-header-bg); cursor: pointer; transition: fill 120ms; }
+.lane-toggle:hover { fill: var(--accent-soft); }
+.lane-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lane-caret { fill: var(--muted); font: 11px var(--font-ui); pointer-events: none; }
+
+/* wires */
+.edge { fill: none; stroke: var(--dataflow); color: var(--dataflow); stroke-width: 1.4; opacity: .6; }
+.edge.order { stroke: var(--order); color: var(--order); stroke-dasharray: 5 4; }
+/* ONE treatment for incident edges: weight plus a halo. Direction already
+   reads off the arrowhead, and colour/dash are spoken for by the edge KIND --
+   overriding either would turn an After edge into what looks like proven
+   dataflow. */
+.edge.incident { opacity: 1; stroke-width: 2.4; filter: drop-shadow(0 0 4px currentColor); }
+.arrowhead { fill: var(--dataflow); }
+.arrowhead.order { fill: var(--order); }
+
+/* nodes */
+.node { cursor: pointer; }
+.node-box { fill: var(--node-bg); stroke: var(--node-border); stroke-width: 1.2; }
+/* Severity is the node's BASE look, and interaction overrides it. Wrapped in
+   :where() so it contributes ZERO specificity -- otherwise
+   `.node.warn.sev-error .node-box` (three classes) outranks
+   `.node.lens-hit .node-box` (two), and highlighting an error node changed
+   nothing at all. The badge carries the severity, so the border is free to
+   mean "this is the one you picked / lensed". */
+.node:where(.warn) .node-box { stroke: var(--warn); stroke-width: 1.8; }
+.node:where(.warn.sev-error) .node-box { stroke: var(--error); }
+/* Warn/error badge, top-right. Non-interactive: it is a MARKER, and the
+   whole node is already the click target. */
+.node-badge { pointer-events: none; }
+.node-badge.sev-warn { fill: var(--warn); }
+.node-badge.sev-error { fill: var(--error); }
+.node-badge-text { pointer-events: none; fill: var(--badge-ink); font: 700 10px var(--font-ui); }
+/* Selection last, so it outranks the lens at equal specificity: picking a
+   node is a deliberate act, lensing is a filter over many. */
+.node.lens-hit .node-box { stroke: var(--accent); stroke-width: 2.6; }
+.node.selected .node-box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+.node:focus-visible { outline: none; }
+.node:focus-visible .node-box { stroke: var(--accent); }
+/* 11px to match layout.js's NODE_FONT_PX: the box is sized for this face. */
+.node-label { fill: var(--fg); font: 11px var(--font-data); pointer-events: none; }
+
+/* "from an included file": the link glyph, on nodes, lane headers, file
+   tabs and in the legend. A mark rather than a colour -- colour on a node
+   already means severity or selection -- drawn in the muted ink so the name
+   stays the loudest thing in the box. */
+.node-filemark, .lane-filemark, .legend-filemark, .tab-filemark {
+  fill: none; stroke: var(--muted); stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
+}
+.node.selected .node-filemark { stroke: var(--accent); }
+.legend-filemark, .tab-filemark { width: 12px; height: 12px; flex: 0 0 auto; }
+
+/* ---------------------------------------------------------- source view --- */
+.source-area { flex: 1 1 auto; overflow: auto; background: var(--bg); }
+.file-bar {
+  position: sticky; top: 0; z-index: 2; display: flex; gap: 4px; flex-wrap: wrap;
+  padding: 6px 10px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.file-tab {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  background: transparent; color: var(--muted);
+  font: inherit; font-size: var(--fs-xs); font-family: var(--font-data); cursor: pointer;
+}
+.file-tab:hover { color: var(--fg); border-color: var(--accent); }
+.file-tab.on { background: var(--surface-2); color: var(--fg); }
+.file-tab.all { font-family: var(--font-ui); font-weight: 600; }
+
+/* The composed ("All") view: an <Include> call becomes a header row, and the
+   lines it pulled in follow with a rail, their own (italic) line numbers and
+   an indent per nesting level, so the reader sees one document and still
+   knows which file every line came from. */
+.code-row.include-head { background: var(--surface-2); }
+.code-row.include-head .code-text {
+  display: inline-flex; align-items: center; gap: 6px; white-space: normal;
+  color: var(--muted); font-family: var(--font-ui); font-size: var(--fs-xs);
+}
+.code-row.include-head .head-path { font-family: var(--font-data); color: var(--fg); }
+.code-row.include-head.linky:hover .head-path { color: var(--accent); }
+.head-filemark {
+  width: 12px; height: 12px; flex: 0 0 auto; fill: none; stroke: var(--muted);
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+.code-row.injected { box-shadow: inset 3px 0 0 var(--border-strong); }
+.code-row.injected .line-no { color: var(--muted); font-style: italic; opacity: .85; }
+.code-row.injected .code-text { padding-left: calc(var(--depth, 1) * 14px); }
+.code-row.injected.span { box-shadow: inset 3px 0 0 var(--accent); }
+
+.code-wrap { font-family: var(--font-data); font-size: 12.5px; padding-bottom: 32px; }
+.code-row { display: flex; align-items: stretch; line-height: 1.55; }
+.code-row.row-info { background: var(--info-bg); }
+.code-row.row-warn { background: var(--warn-bg); }
+.code-row.row-error { background: var(--error-bg); }
+.code-row.current { outline: 1px solid var(--accent); outline-offset: -1px; }
+/* De-emphasis never touches .code-text -- readability is the view's whole
+   job, so a muted row loses its tint, not its legibility. */
+.code-row.muted { background: none; }
+
+/* The selected node's WHOLE element, `<Node ...>` through `</Node>`. A node
+   is a range, not a line: highlighting only the opening tag leaves the reader
+   to work out where it ends. Drawn as a left rail plus a wash, so it reads as
+   one block and still composes with the per-line severity tints underneath
+   rather than replacing them. */
+.code-row.span { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.code-row.span.row-warn  { background: var(--warn-bg); }
+.code-row.span.row-error { background: var(--error-bg); }
+.code-row.span-start { border-top: 1px solid var(--accent); }
+.code-row.span-end   { border-bottom: 1px solid var(--accent); }
+.code-row.span .line-no { color: var(--accent); font-weight: 600; }
+.code-row.muted .gutter-dot { opacity: .3; }
+
+/* Fixed width, sized for the worst case of three dots: the code column must
+   start at the same x on every row or the file stops reading as code. */
+.gutter { flex: 0 0 21px; display: flex; gap: 2px; align-items: center; padding-left: 3px; }
+.gutter-dot { width: 6px; height: 6px; border-radius: 50%; cursor: help; align-self: center; }
+.gutter-dot.sev-info { background: var(--info); }
+.gutter-dot.sev-warn { background: var(--warn); }
+.gutter-dot.sev-error { background: var(--error); }
+.line-no {
+  flex: 0 0 52px; text-align: right; padding-right: 12px;
+  color: var(--muted); user-select: none; font-variant-numeric: tabular-nums;
+}
+.code-text { white-space: pre; padding-right: 16px; }
+
+/* ----------------------------------------------------------- responsive --- */
+@media (max-width: 1100px) {
+  .details-panel { width: 260px; }
+}
+@media (max-width: 900px) {
+  /* Stacked, and the column SCROLLS. Measured bug: with the panels as plain
+     `flex: 0 0 auto` boxes at max-height 34vh each, two of them consumed the
+     whole column and .report-main was left 5px tall at 762x428 -- the graph
+     vanished entirely. Giving the graph a viewport-relative floor and letting
+     the column overflow is what keeps every part usable on a short window;
+     collapsing one pane to nothing is never the right answer. */
+  .report-body { flex-direction: column; overflow-y: auto; }
+  .findings-panel, .details-panel {
+    width: 100%; flex: 0 0 auto; max-height: 40vh;
+    border-right: none; border-left: none; border-bottom: 1px solid var(--border);
+  }
+  .report-main { flex: 0 0 auto; min-height: 55vh; }
+  .legend { border-left: 0; padding-left: 0; }
+  .report-tools { margin-left: 0; }
+  .share-panel { position: static; width: 100%; }
+  .graph-hint { display: none; }
+  #shell-header { padding: 10px 16px; }
+  .brand-mark { width: 28px; height: 28px; }
+  .tagline { display: none; }
+}
+@media (max-width: 560px) {
+  .card { padding: 20px; }
+  .findings-panel .finding-loc { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

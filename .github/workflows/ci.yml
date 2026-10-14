@@ -1,0 +1,59 @@
+name: CI
+
+# Deployment is Cloudflare Pages, and there is nothing for it to build: the
+# web app is plain ES modules the browser loads as-is, so "building" the site
+# is copying webapp/ to the CDN. This workflow is the gate, not the builder.
+#
+# Two suites, because there are two implementations to keep honest:
+#   * the Python package, which is still the CLI and the reference
+#   * the JavaScript port, which is what the site actually runs
+# The JS port was derived by comparing every module against the Python over
+# Epic's 19 shipped graphs. That comparison needs the corpus and cannot run
+# here; what runs here is the behaviour it pinned down.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # unittest, not pytest: bgview is stdlib-only and there is nothing to
+      # pip install, here or anywhere. Only the modules carrying their own
+      # fixtures run -- the rest assert on Epic's corpus or on a target file
+      # no runner has, and they assert rather than skip when it is absent.
+      # tests.test_web is one of the fixture-carrying ones: it scans webapp/,
+      # which is checked into this repo, so it needs nothing the runner lacks.
+      - name: Python suite
+        run: >
+          python -m unittest -v
+          tests.test_algebra
+          tests.test_engine_errors
+          tests.test_expansion_oracle
+          tests.test_lexer
+          tests.test_macro_contract
+          tests.test_pipeline
+          tests.test_report
+          tests.test_web
+
+      # No dependency, no framework: node --test is built in. Globbed, not
+      # a named list: a suite CI has to be edited to notice is a suite that
+      # eventually stops being run.
+      - name: JavaScript suite
+        run: node --test tests-js/*.mjs

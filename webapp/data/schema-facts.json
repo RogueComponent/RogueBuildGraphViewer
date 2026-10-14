@@ -1,0 +1,572 @@
+{
+  "_notice": "bgview's own derived fact table, not an Epic Games file. Element and attribute names extracted from a generated Engine/Build/Graph/Schema.xsd; see bgview/data/NOTICE.md. Regenerate with tools/derive_schema.py.",
+  "engine": "5.8",
+  "elements": {
+    "AgeStore": {
+      "required": [
+        "Days",
+        "Platform",
+        "StoreDir"
+      ]
+    },
+    "Agent": {
+      "required": [
+        "Name"
+      ]
+    },
+    "Aggregate": {
+      "required": [
+        "Name",
+        "Requires"
+      ]
+    },
+    "Annotate": {},
+    "Artifact": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Name",
+        "Type"
+      ]
+    },
+    "Aws": {},
+    "Aws-AssumeRole": {
+      "required": [
+        "Arn",
+        "OutputFile",
+        "Session"
+      ]
+    },
+    "Aws-EcsDeploy": {
+      "required": [
+        "Cluster",
+        "DockerImage",
+        "Service",
+        "TaskDefinitionFile"
+      ]
+    },
+    "Badge": {
+      "required": [
+        "Name",
+        "Project"
+      ]
+    },
+    "BuildGraph": {},
+    "Case": {
+      "required": [
+        "If"
+      ]
+    },
+    "CheckMarkdown": {},
+    "Command": {
+      "required": [
+        "Name"
+      ]
+    },
+    "Commandlet": {
+      "required": [
+        "Name"
+      ]
+    },
+    "Compile": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Configuration",
+        "Platform"
+      ]
+    },
+    "Cook": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Platform",
+        "Project"
+      ]
+    },
+    "Copy": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "From",
+        "To"
+      ]
+    },
+    "CopyDDC": {
+      "required": [
+        "Replay",
+        "Source"
+      ]
+    },
+    "CreateArtifact": {
+      "required": [
+        "Files",
+        "Name",
+        "Type"
+      ]
+    },
+    "CreateCloudArtifact": {
+      "required": [
+        "BuildGroup",
+        "Files",
+        "Name",
+        "Platform",
+        "Type"
+      ]
+    },
+    "CsCompile": {
+      "produces": [
+        "Tag",
+        "TagReferences"
+      ],
+      "required": [
+        "Project"
+      ]
+    },
+    "DDCReplayLoad": {
+      "required": [
+        "DDCReplayFile",
+        "Exe"
+      ]
+    },
+    "Default": {},
+    "Delete": {},
+    "DeployTool": {
+      "required": [
+        "Id",
+        "Version"
+      ]
+    },
+    "Do": {},
+    "Docker": {
+      "required": [
+        "Arguments"
+      ]
+    },
+    "Docker-Build": {
+      "required": [
+        "BaseDir",
+        "Files"
+      ]
+    },
+    "Docker-Compose-Down": {
+      "required": [
+        "File"
+      ]
+    },
+    "Docker-Compose-Up": {
+      "required": [
+        "File"
+      ]
+    },
+    "Docker-Push": {
+      "required": [
+        "Image",
+        "Repository"
+      ]
+    },
+    "DotNet": {},
+    "EnvVar": {
+      "required": [
+        "Name"
+      ]
+    },
+    "Error": {
+      "required": [
+        "Message"
+      ]
+    },
+    "Expand": {
+      "required": [
+        "Name"
+      ]
+    },
+    "Extend": {
+      "required": [
+        "Name"
+      ]
+    },
+    "FindModifiedFiles": {},
+    "ForEach": {
+      "required": [
+        "Name",
+        "Values"
+      ]
+    },
+    "GatherBuildProductsFromFile": {
+      "required": [
+        "BuildProductsFile"
+      ]
+    },
+    "Git": {},
+    "Git-Clone": {
+      "required": [
+        "Branch",
+        "Dir"
+      ]
+    },
+    "Helm": {
+      "required": [
+        "Chart",
+        "Deployment"
+      ]
+    },
+    "Horde-CreateReport": {
+      "required": [
+        "Name",
+        "Placement",
+        "Scope",
+        "Text"
+      ]
+    },
+    "Horde-CreateSummaryArtifact": {
+      "required": [
+        "Files",
+        "Name",
+        "ReportName",
+        "ReportText",
+        "Type"
+      ]
+    },
+    "Horde-GetSecrets": {
+      "required": [
+        "File"
+      ]
+    },
+    "Horde-SetSecretEnvVar": {
+      "required": [
+        "Name",
+        "Secret"
+      ]
+    },
+    "Include": {
+      "required": [
+        "Script"
+      ]
+    },
+    "Kubectl": {
+      "required": [
+        "Arguments"
+      ]
+    },
+    "Label": {
+      "required": [
+        "Requires"
+      ]
+    },
+    "Log": {},
+    "Macro": {
+      "required": [
+        "Name"
+      ]
+    },
+    "ModifyConfig": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "File",
+        "Key",
+        "Section",
+        "Value"
+      ]
+    },
+    "ModifyJsonValue": {
+      "required": [
+        "Files",
+        "KeyPath",
+        "NewValue"
+      ]
+    },
+    "Move": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "From",
+        "To"
+      ]
+    },
+    "MsBuild": {
+      "required": [
+        "Project"
+      ]
+    },
+    "Node": {
+      "produces": [
+        "Produces"
+      ],
+      "required": [
+        "Name"
+      ]
+    },
+    "Notarize": {
+      "required": [
+        "BundleID",
+        "DmgPath",
+        "KeyChainID",
+        "UserName"
+      ]
+    },
+    "Notify": {},
+    "NuGet-LicenseCheck": {
+      "required": [
+        "BaseDir"
+      ]
+    },
+    "OnExit": {
+      "required": [
+        "Command"
+      ]
+    },
+    "Option": {
+      "required": [
+        "DefaultValue",
+        "Description",
+        "Name"
+      ]
+    },
+    "PakFile": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Files",
+        "Output"
+      ]
+    },
+    "Property": {
+      "required": [
+        "Name"
+      ]
+    },
+    "QueryTargets": {
+      "produces": [
+        "Tag"
+      ]
+    },
+    "RandomData": {},
+    "Reconcile": {
+      "required": [
+        "Description",
+        "Preview"
+      ]
+    },
+    "Regex": {
+      "required": [
+        "Capture",
+        "Input",
+        "Pattern"
+      ]
+    },
+    "Rename": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Files",
+        "To"
+      ]
+    },
+    "Report": {
+      "required": [
+        "Name",
+        "Requires"
+      ]
+    },
+    "RetrieveArtifact": {
+      "required": [
+        "OutputDir",
+        "Type"
+      ]
+    },
+    "RetrieveCloudArtifact": {
+      "required": [
+        "OutputDir",
+        "Platform",
+        "Type"
+      ]
+    },
+    "SanitizeReceipt": {
+      "required": [
+        "Files"
+      ]
+    },
+    "SetVersion": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Branch",
+        "Change"
+      ]
+    },
+    "Sign": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Files"
+      ]
+    },
+    "Spawn": {
+      "required": [
+        "Exe"
+      ]
+    },
+    "SrcSrv": {
+      "required": [
+        "BinaryFiles",
+        "Branch",
+        "Change",
+        "SourceFiles"
+      ]
+    },
+    "Stage": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Configuration",
+        "Platform",
+        "Target",
+        "ToDir"
+      ]
+    },
+    "StringOp": {
+      "required": [
+        "Input",
+        "Method",
+        "Output"
+      ]
+    },
+    "Strip": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Files",
+        "Platform"
+      ]
+    },
+    "Submit": {
+      "required": [
+        "Description",
+        "Files"
+      ]
+    },
+    "Switch": {},
+    "SymGen": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "Files"
+      ]
+    },
+    "SymStore": {
+      "required": [
+        "Files",
+        "Platform",
+        "Product",
+        "StoreDir"
+      ]
+    },
+    "Tag": {
+      "produces": [
+        "With"
+      ],
+      "required": [
+        "With"
+      ]
+    },
+    "TagReceipt": {
+      "produces": [
+        "With"
+      ],
+      "required": [
+        "Files",
+        "With"
+      ]
+    },
+    "Trace": {
+      "required": [
+        "Message"
+      ]
+    },
+    "Unzip": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "ToDir",
+        "ZipFile"
+      ]
+    },
+    "UploadCloudSymbols": {
+      "required": [
+        "Files",
+        "Namespace"
+      ]
+    },
+    "Wait": {
+      "required": [
+        "Seconds"
+      ]
+    },
+    "Warning": {
+      "required": [
+        "Message"
+      ]
+    },
+    "WriteJsonValue": {
+      "required": [
+        "File",
+        "Key",
+        "Value"
+      ]
+    },
+    "WriteTextFile": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "File"
+      ]
+    },
+    "ZenExportSnapshot": {
+      "required": [
+        "DestinationStorageType"
+      ]
+    },
+    "ZenImportOplog": {
+      "required": [
+        "ImportType"
+      ]
+    },
+    "ZenImportSnapshot": {
+      "required": [
+        "Project"
+      ]
+    },
+    "ZenLaunch": {
+      "required": [
+        "Project"
+      ]
+    },
+    "ZenMirror": {},
+    "Zip": {
+      "produces": [
+        "Tag"
+      ],
+      "required": [
+        "FromDir",
+        "ZipFile"
+      ]
+    }
+  }
+}

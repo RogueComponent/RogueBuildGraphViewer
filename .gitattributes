@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.xml text eol=lf
+*.md  text eol=lf
+*.py  text eol=lf
+
+# .bat MUST stay CRLF: cmd.exe can mis-parse labels/goto in an LF-only batch
+# file, which turns a launcher into a silent no-op.
+*.bat text eol=crlf

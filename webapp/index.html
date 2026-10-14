@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rogue BuildGraph Viewer - static analysis</title>
+<meta name="description" content="Static analysis and a swimlane graph for Unreal Engine BuildGraph scripts, entirely in the browser: tag dataflow, parse-time property expansion and the agent boundary made visible.">
+<meta name="color-scheme" content="light dark">
+
+<!--
+  There is no wasm, no eval, and no inline script here, so the policy can be
+  the strict one: everything comes from this origin, and connect-src 'self'
+  means the script you pick has no path off the machine.
+
+  Compare the Pyodide version this replaced, which was forced to allow
+  'unsafe-eval' (the runtime eval'd at startup) and 'unsafe-inline' (the
+  report was one self-contained file of inline script). Dropping Python
+  dropped both, which is a real security improvement, not just a size one.
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  connect-src 'self';
+  script-src 'self';
+  style-src 'self';
+  img-src 'self' data:;
+  base-uri 'none';
+  form-action 'none';
+  object-src 'none'">
+
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./styles.css">
+<!--
+  A classic (non-module) script, loaded before the body paints, that replays
+  a remembered light/dark choice so the page does not flash the OS theme.
+  Same origin, no inline code: the CSP above stays exactly as strict.
+-->
+<script src="./theme-boot.js"></script>
+</head>
+<body>
+
+<header id="shell-header">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect x="6" y="12" width="20" height="13" rx="3" fill="currentColor" /><rect x="38" y="12" width="20" height="13" rx="3" fill="currentColor" /><path d="M26,18.5 H38" fill="none" stroke="currentColor" stroke-width="3" /><path class="mark-loose-wire" d="M16,25 V45.5 H38" fill="none" stroke-width="3" stroke-dasharray="4 4" /><rect class="mark-loose" x="38" y="39" width="20" height="13" rx="3" /></svg>
+    <div class="brand-text">
+    <h1>Rogue BuildGraph Viewer</h1>
+    <p class="tagline">
+      BuildGraph's three invisible semantics &mdash; tag dataflow, parse-time
+      property expansion, the agent boundary &mdash; made visible.
+    </p>
+    </div>
+  </div>
+  <div class="shell-actions">
+    <button id="reopen" type="button" class="btn" hidden>Analyse another</button>
+    <button id="theme" type="button" class="btn ghost">Theme: auto</button>
+  </div>
+</header>
+
+<main id="picker">
+  <section class="card" aria-labelledby="pick-title">
+    <h2 id="pick-title">Analyse a BuildGraph script</h2>
+    <p class="lead">
+      Drop the script here. Everything runs in this tab.
+    </p>
+
+    <!--
+      Drag-and-drop is the one visible way in: it asks the browser for no
+      permission and shows no dialog, and a dropped FOLDER is walked with the
+      entries API so <Include> resolves across it (includes are relative to
+      the including file's directory, so a single dropped file cannot see
+      them -- bgview reports each one, V47, and the report then offers to
+      fetch just those files). The zone is focusable, and Enter/Space on it
+      opens a plain file dialog: a drag-only entry point would exclude anyone
+      without a pointer. That input is visually hidden, not `hidden`, so it
+      stays in the tab order.
+    -->
+    <div id="dropzone" class="dropzone" tabindex="0" role="button"
+         aria-label="Drop a BuildGraph script or its folder here. Press Enter to browse for a file instead.">
+      <svg class="dropzone-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M24 6v24m0 0-9-9m9 9 9-9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M8 32v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <p class="dropzone-title">Drop a BuildGraph <code>.xml</code> here</p>
+      <p class="dropzone-sub">
+        Or drop the folder that holds it: <code>&lt;Include&gt;</code> resolves
+        across it, and its <code>Schema.xsd</code> is used when present. If
+        includes reach further out, the report offers to fetch just those
+        files. Dropping asks for nothing and sends nothing.
+      </p>
+      <p class="dropzone-kbd">No pointer? Focus this box and press Enter to browse for a file.</p>
+    </div>
+    <input id="pick-file" class="visually-hidden" type="file" accept=".xml,application/xml,text/xml" tabindex="-1" aria-hidden="true">
+
+    <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
+    <div id="choices" class="choices" hidden></div>
+    <pre id="error" class="error" hidden></pre>
+  </section>
+
+  <aside class="privacy" aria-label="Privacy">
+    <p>
+      <strong>Nothing is uploaded and nothing is installed.</strong> The
+      analyser is JavaScript running in this tab: your script is read into
+      memory, analysed, and never sent anywhere on its own. The one exception
+      is opt-in &mdash; the report's <strong>Share</strong> button encodes the
+      script into a link for you to send yourself. Until you press it, nothing
+      leaves this tab.
+    </p>
+  </aside>
+
+  <footer class="meta">
+    <p>
+      The same analysis is a command-line tool: <code>python -m bgview script.xml</code>
+      prints findings, writes SARIF, and can save a self-contained HTML report.
+    </p>
+    <p class="credit">Rogue BuildGraph Viewer is a <a href="https://roguecomponent.com" rel="noreferrer">Rogue Component</a> tool.</p>
+  </footer>
+</main>
+
+<div id="report" class="report" hidden></div>
+
+<!--
+  Inputs for ADDING files to a report that is already up (its missing
+  includes). Outside #picker, which is hidden while a report shows, and
+  outside #report, which is rebuilt on every analysis. Only the notice's
+  buttons open them; they are never shown themselves.
+-->
+<div hidden>
+  <input id="add-files" type="file" multiple accept=".xml,.xsd,application/xml,text/xml">
+  <input id="add-dir" type="file" webkitdirectory directory multiple>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

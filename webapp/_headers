@@ -1,0 +1,12 @@
+# Header rules for static hosts that read this file (Cloudflare Pages,
+# Netlify). Served from the site root.
+#
+# There is no .wasm and no .mjs here any more -- the app is plain .js ES
+# modules -- so the MIME pins that B9 forced are no longer load-bearing. What
+# remains is worth keeping on its own terms: nosniff, so a host that guesses
+# a type cannot turn one of these files into something else, and a referrer
+# policy, because a build script's filename has no business leaking.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer

@@ -1,0 +1,99 @@
+<?xml version='1.0' ?>
+<!--
+	§T.15 expansion oracle fixture.
+
+	Every <Log Message=".."/> below is a probe: tests/test_expansion_oracle.py
+	asserts the EXACT expanded value of each one. This is what makes V11
+	testable rather than aspirational — the invariant claims we model the
+	engine's parse-time, top-to-bottom, scope-stack expansion, and this file
+	pins that claim down case by case.
+
+	Every expectation here was derived from the engine's own C# source
+	(BgScriptReader.ExpandProperties / TryGetPropertyValue / SetPropertyValue),
+	not from what our implementation happens to do.
+-->
+<BuildGraph xmlns="http://www.epicgames.com/BuildGraph">
+
+	<Property Name="Simple" Value="hello"/>
+	<Property Name="Long" Value="abcdefgh"/>
+	<Property Name="Short" Value="abc"/>
+
+	<Agent Name="Oracle Agent" Type="Win64">
+
+		<Node Name="Probes">
+			<!-- P1: plain expansion -->
+			<Log Message="P1=$(Simple)"/>
+
+			<!-- P2: nested expansion. $(Simple) resolves first, giving $(xhellox)?
+			     No — there is no such property, so the inner resolves and the
+			     outer name becomes literal text. Engine scans innermost-first. -->
+			<Log Message="P2=$(Long)"/>
+
+			<!-- P3: R18 slice, positive N = FIRST n chars -->
+			<Log Message="P3=$(Long:3)"/>
+
+			<!-- P4: R18 slice, negative N = LAST n chars -->
+			<Log Message="P4=$(Long:-3)"/>
+
+			<!-- P5: R18 boundary. Slice applies ONLY when len(value) > abs(N).
+			     "abc" is length 3 and abs(-6) is 6, so the value is UNCHANGED. -->
+			<Log Message="P5=$(Short:-6)"/>
+
+			<!-- P6: V12(a) undefined name -> expands to empty, emits a D1 finding -->
+			<Log Message="P6=[$(NoSuchProperty)]"/>
+
+			<!-- P7: V12(b) RootDir is a BUILT-IN that exists with a NULL value.
+			     The engine's `if (value != null)` guard means the literal text
+			     survives untouched and NO warning is emitted. This is the
+			     subtle case that separates a faithful model from a plausible one. -->
+			<Log Message="P7=$(RootDir)"/>
+
+			<!-- P8: V22 a non-null built-in expands normally -->
+			<Log Message="P8=$(IsBuildMachine)"/>
+		</Node>
+
+		<!-- V11 / R5: expansion happens at ELEMENT-READ time, top-to-bottom.
+		     Redefining Simple AFTER the probe above must not reach back and
+		     change P1. -->
+		<Property Name="Simple" Value="REDEFINED"/>
+
+		<Node Name="After Redefine">
+			<!-- P9: the same reference, read later, sees the new value -->
+			<Log Message="P9=$(Simple)"/>
+		</Node>
+
+		<!-- R20: the accumulator idiom. Legitimate, used 37x in Epic's corpus,
+		     and must never be reported as a dead or clobbered definition. -->
+		<Property Name="Acc" Value="one"/>
+		<Property Name="Acc" Value="$(Acc);two"/>
+		<Property Name="Acc" Value="$(Acc);three"/>
+
+		<Node Name="Accumulator">
+			<!-- P10 -->
+			<Log Message="P10=$(Acc)"/>
+		</Node>
+
+		<!-- Scope stack: the ForEach loop variable is bound in a child scope
+		     and emits the body once per value. -->
+		<ForEach Name="Item" Values="alpha;beta">
+			<Node Name="Loop $(Item)">
+				<!-- P11a / P11b -->
+				<Log Message="P11=$(Item)"/>
+			</Node>
+		</ForEach>
+
+		<!-- R15: a macro body resolves properties in the lexical scope of the
+		     EXPANSION site, not the definition site. MacroProbe is defined
+		     BELOW this macro but ABOVE the <Expand>, so it must resolve. -->
+		<Macro Name="ShowIt">
+			<Log Message="P12=$(MacroProbe)"/>
+		</Macro>
+
+		<Property Name="MacroProbe" Value="seen-at-expansion-site"/>
+
+		<Node Name="Macro Site">
+			<Expand Name="ShowIt"/>
+		</Node>
+	</Agent>
+
+</BuildGraph>
