@@ -23,3 +23,6 @@ out/
 *.swp
 Thumbs.db
 desktop.ini
+
+# Cloudflare wrangler cache
+.wrangler/

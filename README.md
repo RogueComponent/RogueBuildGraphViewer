@@ -1,7 +1,7 @@
 # Rogue BuildGraph Viewer
 
 Static analyzer and visualizer for Unreal Engine **BuildGraph** `.xml` scripts, by
-[Rogue Component](https://roguecomponent.com). Use it at
+[Rogue Component](https://www.roguecomponent.com). Use it at
 **https://buildgraphviewer.roguecomponent.com**, or host your own copy: see
 [Hosting your own](#hosting-your-own). Inside the code and on the command line the tool is called
 `bgview`.
@@ -712,6 +712,6 @@ Rogue BuildGraph Viewer is **source-available**, under the Apache License 2.0 wi
 Clause condition; see [LICENSE](LICENSE). You may use it, change it, and host it for yourself, your
 studio or anyone else, at no charge. You may **not sell it**: no charging for the software, for
 hosting it, or for a product or service whose value comes from it, without written permission
-from Rogue Component. To ask, get in touch through [roguecomponent.com](https://roguecomponent.com).
+from Rogue Component. To ask, get in touch through [roguecomponent.com](https://www.roguecomponent.com).
 
 Because of that condition it is not open source in the OSI sense, even though the code is public.

@@ -87,7 +87,9 @@ ALLOWED_URL_PREFIXES = (
 # only as an <a href> in an .html file: a prefix allowance would also wave
 # through a lookalike host, and the same URL in a fetch() is still an offender.
 ALLOWED_OUTBOUND_LINKS = frozenset({
-    "https://roguecomponent.com",  # footer credit in index.html
+    "https://www.roguecomponent.com",          # footer credit in index.html
+    "https://www.roguecomponent.com/privacy",  # hosted copy: privacy notice
+    "https://www.roguecomponent.com/terms",    # hosted copy: terms of use
 })
 
 
